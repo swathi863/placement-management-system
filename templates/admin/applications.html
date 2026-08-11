@@ -6,7 +6,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Candidate Applications</h1>
-    <p class="page-subtitle">Review student job applications, update recruitment status, and schedule interview rounds.</p>
+    <p class="page-subtitle">Review candidate ATS resume match scores, automated screening results, and schedule interview rounds.</p>
   </div>
 
   <div style="display: flex; gap: 0.75rem;">
@@ -52,6 +52,7 @@
           <th>Student Details</th>
           <th>Branch & CGPA</th>
           <th>Target Job & Company</th>
+          <th>ATS Resume Score</th>
           <th>Applied Date</th>
           <th>Current Status</th>
           <th>Resume</th>
@@ -73,6 +74,21 @@
             <td>
               <div style="font-weight: 700;">{{ app.job.title }}</div>
               <div style="font-size: 0.8rem; color: var(--text-muted);">{{ app.job.company.name }} ({{ app.job.salary_package }})</div>
+            </td>
+            <td>
+              {% if app.match_score > 0 %}
+                {% if app.screening_result == 'Passed' %}
+                  <span class="badge badge-match" style="font-weight: 800;">
+                    🎯 {{ app.match_score }}% (PASSED)
+                  </span>
+                {% else %}
+                  <span class="badge badge-rejected" style="font-weight: 800;">
+                    ⚠️ {{ app.match_score }}% (FAILED)
+                  </span>
+                {% endif %}
+              {% else %}
+                <span style="font-size: 0.8rem; color: var(--text-light);">Pending</span>
+              {% endif %}
             </td>
             <td style="font-size: 0.85rem;">{{ app.applied_at.strftime('%b %d, %Y') }}</td>
             <td>

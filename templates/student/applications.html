@@ -6,7 +6,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">My Applications</h1>
-    <p class="page-subtitle">Track your live recruitment application progress, recruiter remarks, and interview status.</p>
+    <p class="page-subtitle">Track your live recruitment application progress, ATS resume match score, and interview status.</p>
   </div>
   <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">
     + Explore Open Drives
@@ -34,7 +34,20 @@
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <!-- ATS Resume Match Score Gauge Badge -->
+            {% if app.match_score > 0 %}
+              {% if app.screening_result == 'Passed' %}
+                <span class="badge badge-match" style="font-weight: 800;">
+                  🎯 ATS Resume Score: {{ app.match_score }}% (PASSED)
+                </span>
+              {% else %}
+                <span class="badge badge-rejected" style="font-weight: 800;">
+                  ⚠️ ATS Resume Score: {{ app.match_score }}% (FAILED)
+                </span>
+              {% endif %}
+            {% endif %}
+
             {% if app.status == 'Applied' %}
               <span class="badge badge-applied">Applied</span>
             {% elif app.status == 'Under Review' %}
@@ -64,9 +77,9 @@
             <div class="step-label">Applied</div>
           </div>
 
-          <div class="step-item {% if app.status in ['Under Review', 'Shortlisted', 'Interview Scheduled', 'Selected', 'Rejected'] %}completed{% else %}active{% endif %}">
-            <div class="step-node">{% if app.status in ['Under Review', 'Shortlisted', 'Interview Scheduled', 'Selected', 'Rejected'] %}✓{% else %}2{% endif %}</div>
-            <div class="step-label">Screening</div>
+          <div class="step-item {% if app.screening_result == 'Passed' %}completed{% elif app.screening_result == 'Failed' %}active{% else %}completed{% endif %}">
+            <div class="step-node">{% if app.screening_result == 'Passed' %}✓{% elif app.screening_result == 'Failed' %}✕{% else %}✓{% endif %}</div>
+            <div class="step-label">ATS Screening ({{ app.match_score }}%)</div>
           </div>
 
           <div class="step-item {% if app.status in ['Shortlisted', 'Interview Scheduled', 'Selected'] %}completed{% elif app.status == 'Rejected' %}active{% else %}{% endif %}">
@@ -85,14 +98,14 @@
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-subtle); padding: 0.85rem 1.1rem; border-radius: var(--radius-md); font-size: 0.875rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-subtle); padding: 0.85rem 1.1rem; border-radius: var(--radius-md); font-size: 0.875rem; flex-wrap: wrap; gap: 0.5rem;">
           <div>
             <span style="color: var(--text-muted); font-weight: 600;">Applied Date:</span>
             <strong>{{ app.applied_at.strftime('%B %d, %Y') }}</strong>
           </div>
           {% if app.remarks %}
             <div>
-              <span style="color: var(--text-muted); font-weight: 600;">Recruiter Remark:</span>
+              <span style="color: var(--text-muted); font-weight: 600;">Automated Feedback:</span>
               <strong style="color: var(--primary);">"{{ app.remarks }}"</strong>
             </div>
           {% endif %}

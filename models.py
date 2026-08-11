@@ -128,6 +128,8 @@ class Application(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id', ondelete='CASCADE'), nullable=False)
     cover_note = db.Column(db.Text)
     status = db.Column(db.String(50), default='Applied')  # Applied, Under Review, Shortlisted, Selected, Rejected
+    match_score = db.Column(db.Float, default=0.0)
+    screening_result = db.Column(db.String(20), default='Pending')  # Passed, Failed, Pending
     remarks = db.Column(db.Text)
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -136,7 +138,7 @@ class Application(db.Model):
     interviews = db.relationship('Interview', backref='application', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Application Job:{self.job_id} Student:{self.student_id} Status:{self.status}>'
+        return f'<Application Job:{self.job_id} Student:{self.student_id} Score:{self.match_score} Status:{self.status}>'
 
 
 class Interview(db.Model):

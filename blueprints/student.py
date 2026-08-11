@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from models import db, Student, Company, Job, Application, Interview
-from utils import student_required, save_uploaded_file, send_notification_email
+from utils import student_required, save_uploaded_file, send_notification_email, calculate_resume_match_score
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
@@ -224,7 +224,7 @@ def apply_job(job_id):
         flash('This job posting is no longer active or applications have closed.', 'danger')
         return redirect(url_for('student.job_detail', job_id=job.id))
 
-    # Allow direct resume file upload inside the Apply modal
+    # File Upload inside Apply Modal
     if 'resume' in request.files and request.files['resume'].filename != '':
         filename, error = save_uploaded_file(
             request.files['resume'],
@@ -256,23 +256,49 @@ def apply_job(job_id):
 
     cover_note = request.form.get('cover_note', '').strip()
 
+    # Calculate Automated ATS Resume Match Score (0.0 to 100.0%)
+    match_score = calculate_resume_match_score(student, job, cover_note)
+    cutoff = 60.0  # 60.0% cutoff for passing initial ATS screening
+
+    if match_score >= cutoff:
+        screening_result = 'Passed'
+        status = 'Shortlisted'
+        remarks = f"PASSED Automated ATS Resume Screening with Match Score of {match_score}%."
+        
+        email_subject = f"🎉 CONGRATULATIONS: Resume Passed Screening for {job.title} at {job.company.name}"
+        email_body = f"Hello {student.name},\n\nGreat news! Your resume and profile successfully PASSED our automated ATS screening for '{job.title}' at {job.company.name} with a Resume Match Score of {match_score}%!\n\nYour application has been automatically Shortlisted. The placement team will schedule your interview round shortly.\n\nBest regards,\nUniversity Placement Cell"
+        flash_msg = f'🎉 Congratulations! Your resume score ({match_score}%) PASSED screening. Your application has been Shortlisted!'
+        flash_category = 'success'
+    else:
+        screening_result = 'Failed'
+        status = 'Rejected'
+        remarks = f"FAILED Automated ATS Resume Screening with Match Score of {match_score}% (Cutoff: {cutoff}%)."
+        
+        email_subject = f"Application Status Update: {job.title} at {job.company.name}"
+        email_body = f"Hello {student.name},\n\nThank you for applying for '{job.title}' at {job.company.name}.\n\nYour automated ATS Resume Match Score for this position was {match_score}%, which did not meet the minimum screening cutoff of {cutoff}%.\n\nWe encourage you to update your skills profile, upload an updated resume, and apply for future opportunities.\n\nBest regards,\nUniversity Placement Cell"
+        flash_msg = f'Notice: Your resume match score for this position was {match_score}%, which did not meet the {cutoff}% screening cutoff. Status: Rejected.'
+        flash_category = 'warning'
+
     new_app = Application(
         job_id=job.id,
         student_id=student.id,
         cover_note=cover_note,
-        status='Applied'
+        status=status,
+        match_score=match_score,
+        screening_result=screening_result,
+        remarks=remarks
     )
     db.session.add(new_app)
     db.session.commit()
 
-    # Application Submission Email Notification
+    # Dispatch Automated Pass/Fail Email Notification
     send_notification_email(
-        subject=f"Application Received: {job.title} at {job.company.name}",
+        subject=email_subject,
         recipient=student.email,
-        body_text=f"Hello {student.name},\n\nYour application for '{job.title}' at {job.company.name} has been successfully received.\n\nApplication Details:\n- Position: {job.title}\n- Company: {job.company.name}\n- Compensation: {job.salary_package or 'N/A'}\n- Location: {job.location or 'N/A'}\n- Submitted On: {datetime.utcnow().strftime('%b %d, %Y')}\n\nYou can track real-time status updates and interview notifications on your Placement Portal dashboard.\n\nBest regards,\nUniversity Placement Cell"
+        body_text=email_body
     )
 
-    flash(f'Application successfully submitted for {job.title} at {job.company.name}!', 'success')
+    flash(flash_msg, flash_category)
     return redirect(url_for('student.applications'))
 
 
