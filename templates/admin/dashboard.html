@@ -3,22 +3,23 @@
 {% block title %}Admin Dashboard - Placement Portal{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<!-- Page Header & Action Bar -->
+<div class="page-header" style="align-items: center;">
   <div>
-    <h1 class="page-title">Administrator Placement Dashboard</h1>
-    <p class="page-subtitle">Overview of campus recruitment statistics, student placements, and active drives</p>
+    <h1 class="page-title">Placement Administrator Dashboard</h1>
+    <p class="page-subtitle">Real-time overview of campus recruitment metrics, student placements, and active drives</p>
   </div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-    <a href="{{ url_for('admin.add_job') }}" class="btn btn-primary">+ Post New Job</a>
+    <a href="{{ url_for('admin.add_job') }}" class="btn btn-primary">+ Post Job Drive</a>
     <a href="{{ url_for('admin.add_company') }}" class="btn btn-secondary">+ Add Company</a>
-    <form action="{{ url_for('admin.reset_database') }}" method="POST" onsubmit="return confirm('WARNING: This will delete ALL student accounts, companies, jobs, applications, and interviews to start completely fresh! Are you sure?');" style="display: inline;">
+    <form action="{{ url_for('admin.reset_database') }}" method="POST" onsubmit="return confirm('WARNING: This will clear all student accounts, companies, jobs, applications, and interviews to start completely fresh! Are you sure?');" style="display: inline;">
       <button type="submit" class="btn btn-danger">🧹 Clear Database (Start Fresh)</button>
     </form>
   </div>
 </div>
 
-<!-- Key Placement Statistics -->
-<div class="stats-grid">
+<!-- 4-Column Key Placement Metrics Row -->
+<div class="stat-grid">
   <div class="stat-card">
     <div class="stat-icon blue">👨‍🎓</div>
     <div>
@@ -26,6 +27,7 @@
       <div class="stat-label">Registered Students</div>
     </div>
   </div>
+
   <div class="stat-card">
     <div class="stat-icon amber">🏢</div>
     <div>
@@ -33,6 +35,7 @@
       <div class="stat-label">Partner Companies</div>
     </div>
   </div>
+
   <div class="stat-card">
     <div class="stat-icon purple">💼</div>
     <div>
@@ -40,6 +43,7 @@
       <div class="stat-label">Active Job Drives</div>
     </div>
   </div>
+
   <div class="stat-card">
     <div class="stat-icon green">🎯</div>
     <div>
@@ -49,30 +53,30 @@
   </div>
 </div>
 
-<!-- Second Metrics Row -->
+<!-- Second Row: Branch Analytics & Management Shortcuts -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
   <!-- Branch Placement Progress -->
   <div class="card">
-    <h2 class="card-title" style="margin-bottom: 1rem;">Branch-wise Placements</h2>
-    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+    <h2 class="card-title" style="margin-bottom: 1.25rem;">Branch-wise Placement Progress</h2>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
       {% for branch_name, data in branch_stats.items() %}
         {% set rate = ((data.placed / data.total * 100)|round(1)) if data.total > 0 else 0 %}
         <div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem;">
             <span>{{ branch_name }}</span>
-            <span>{{ data.placed }} / {{ data.total }} Placed ({{ rate }}%)</span>
+            <span><strong>{{ data.placed }}</strong> / {{ data.total }} Placed ({{ rate }}%)</span>
           </div>
-          <div style="height: 8px; background-color: var(--bg-subtle); border-radius: 4px; overflow: hidden;">
-            <div style="height: 100%; width: {{ rate }}%; background-color: var(--primary); border-radius: 4px;"></div>
+          <div style="height: 10px; background-color: var(--bg-subtle); border-radius: 5px; overflow: hidden;">
+            <div style="height: 100%; width: {{ rate }}%; background-color: var(--primary); border-radius: 5px; transition: width 0.5s ease;"></div>
           </div>
         </div>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Quick Management Links Card -->
+  <!-- Quick Management Shortcuts -->
   <div class="card">
-    <h2 class="card-title" style="margin-bottom: 1rem;">Quick Actions</h2>
+    <h2 class="card-title" style="margin-bottom: 1.25rem;">Quick Management Links</h2>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
       <a href="{{ url_for('admin.students') }}" class="btn btn-secondary" style="justify-content: flex-start;">
         👨‍🎓 Students ({{ total_students }})
@@ -93,11 +97,14 @@
   </div>
 </div>
 
-<!-- Recent Applications Table -->
+<!-- Recent Candidate Applications Table -->
 <div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Recent Job Applications</h2>
-    <a href="{{ url_for('admin.applications') }}" class="btn btn-secondary btn-sm">Manage All Applications</a>
+  <div class="card-header" style="margin-bottom: 1.25rem;">
+    <div>
+      <h2 class="card-title" style="margin-bottom: 0.2rem;">Recent Candidate Applications</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Latest candidate submissions with automated ATS match scores</p>
+    </div>
+    <a href="{{ url_for('admin.applications') }}" class="btn btn-secondary btn-sm">Manage All Applications &rarr;</a>
   </div>
 
   {% if recent_applications %}
@@ -108,16 +115,17 @@
             <th>Student Name</th>
             <th>Branch & CGPA</th>
             <th>Job & Company</th>
+            <th>ATS Score</th>
             <th>Applied Date</th>
             <th>Status</th>
-            <th>Action</th>
+            <th style="text-align: right;">Action</th>
           </tr>
         </thead>
         <tbody>
           {% for app in recent_applications %}
             <tr>
               <td>
-                <div style="font-weight: 600;">
+                <div style="font-weight: 700; color: var(--text-main);">
                   <a href="{{ url_for('admin.student_detail', student_id=app.student.id) }}">{{ app.student.name }}</a>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">{{ app.student.email }}</div>
@@ -127,12 +135,23 @@
                 <span class="badge badge-secondary">CGPA: {{ app.student.cgpa }}</span>
               </td>
               <td>
-                <div style="font-weight: 600;">{{ app.job.title }}</div>
+                <div style="font-weight: 700;">{{ app.job.title }}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">🏢 {{ app.job.company.name }}</div>
+              </td>
+              <td>
+                {% if app.match_score > 0 %}
+                  {% if app.screening_result == 'Passed' %}
+                    <span class="badge badge-match" style="font-weight: 800;">🎯 {{ app.match_score }}%</span>
+                  {% else %}
+                    <span class="badge badge-rejected" style="font-weight: 800;">⚠️ {{ app.match_score }}%</span>
+                  {% endif %}
+                {% else %}
+                  <span style="font-size: 0.8rem; color: var(--text-light);">Calculating...</span>
+                {% endif %}
               </td>
               <td>{{ app.applied_at|format_date }}</td>
               <td><span class="badge {{ app.status|status_badge }}">{{ app.status }}</span></td>
-              <td>
+              <td style="text-align: right;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="openStatusModal({{ app.id }}, '{{ app.student.name|escape }}', '{{ app.job.title|escape }}', '{{ app.status }}', '{{ app.remarks or '' }}');">
                   Update Status
                 </button>
@@ -143,7 +162,10 @@
       </table>
     </div>
   {% else %}
-    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">No applications submitted yet.</p>
+    <div style="text-align: center; padding: 3rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📑</div>
+      <p style="color: var(--text-muted);">No student applications submitted yet.</p>
+    </div>
   {% endif %}
 </div>
 
@@ -151,36 +173,36 @@
 <div class="modal-overlay" id="statusModal">
   <div class="modal-card">
     <div class="modal-header">
-      <h2 style="font-size: 1.2rem; font-weight: 700;">Update Application Status</h2>
-      <button type="button" class="modal-close">&times;</button>
+      <h2 style="font-size: 1.25rem; font-weight: 700;">Update Candidate Status</h2>
+      <button type="button" class="modal-close" onclick="closeModal('statusModal')">&times;</button>
     </div>
 
     <form id="statusModalForm" method="POST">
-      <div style="background-color: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
-        <div style="font-weight: 600; color: var(--text-main);" id="modalStudentName">Student</div>
-        <div style="font-size: 0.825rem; color: var(--text-muted);" id="modalJobTitle">Job Title</div>
+      <div style="background-color: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-weight: 700; color: var(--text-main);" id="modalStudentName">Student Name</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);" id="modalJobTitle">Job Title</div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="modalStatusSelect">Select New Status</label>
+        <label class="form-label" for="modalStatusSelect">Recruitment Status</label>
         <select id="modalStatusSelect" name="status" class="form-select" required>
           <option value="Applied">Applied</option>
           <option value="Under Review">Under Review</option>
           <option value="Shortlisted">Shortlisted</option>
           <option value="Interview Scheduled">Interview Scheduled</option>
-          <option value="Selected">Selected (Hired)</option>
+          <option value="Selected">Selected (Job Offer)</option>
           <option value="Rejected">Rejected</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="modalRemarksInput">Admin Remarks / Notes</label>
-        <textarea id="modalRemarksInput" name="remarks" class="form-control" rows="3" placeholder="Notes regarding shortlisted status, score, or rejection reason..."></textarea>
+        <label class="form-label" for="modalRemarksInput">Recruiter Remarks / Feedback</label>
+        <textarea id="modalRemarksInput" name="remarks" class="form-control" rows="3" placeholder="Provide interview notes or shortlist feedback..."></textarea>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
-        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Status</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('statusModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save & Send Email Alert</button>
       </div>
     </form>
   </div>

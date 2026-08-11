@@ -253,10 +253,10 @@ a:hover {
   justify-content: space-between;
 }
 
-/* Dashboard Metric Grids */
-.stat-grid {
+/* Dashboard Metric Grids - 4 Column Layout */
+.stat-grid, .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
@@ -271,17 +271,18 @@ a:hover {
   align-items: center;
   gap: 1.25rem;
   transition: var(--transition);
+  position: relative;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: var(--border-focus);
+  border-color: var(--primary);
 }
 
 .stat-icon {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -619,33 +620,6 @@ a:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* Active Filter Chips */
-.filter-chips {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background-color: var(--primary-light);
-  color: var(--primary);
-  border: 1px solid #bfdbfe;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.chip-remove {
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
 /* Modal System */
 .modal-overlay {
   position: fixed;
@@ -736,6 +710,10 @@ a:hover {
   .nav-links::-webkit-scrollbar {
     display: none;
   }
+
+  .stat-grid, .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -783,7 +761,6 @@ a:hover {
     width: 100% !important;
   }
 
-  /* Table Touch Scroll Support */
   .table-responsive {
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
@@ -796,7 +773,6 @@ a:hover {
     font-size: 0.85rem;
   }
 
-  /* Touch-friendly buttons and inputs */
   .btn, .form-control, .form-select {
     min-height: 42px;
     font-size: 0.9rem;
@@ -807,7 +783,6 @@ a:hover {
     padding: 0.4rem 0.75rem;
   }
 
-  /* Modals on Mobile */
   .modal-card {
     width: 95%;
     padding: 1.25rem;
@@ -844,6 +819,12 @@ a:hover {
   }
 }
 
+@media (max-width: 576px) {
+  .stat-grid, .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .brand-logo span {
     font-size: 1.1rem;
@@ -851,9 +832,5 @@ a:hover {
   
   .card {
     padding: 1rem;
-  }
-
-  .stat-grid {
-    grid-template-columns: 1fr;
   }
 }
