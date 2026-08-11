@@ -75,41 +75,6 @@ function closeModal(modalElement) {
   }
 }
 
-// In-Browser PDF Resume Preview Modal
-function openPdfPreviewModal(pdfUrl, title) {
-  let modal = document.getElementById('pdfPreviewModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'pdfPreviewModal';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-      <div class="modal-card" style="max-width: 850px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
-        <div class="modal-header">
-          <h2 style="font-size: 1.2rem; font-weight: 700;" id="pdfModalTitle">Resume Preview</h2>
-          <button type="button" class="modal-close" onclick="closeModal('pdfPreviewModal')">&times;</button>
-        </div>
-        <div style="flex: 1; overflow: hidden; background-color: var(--bg-subtle); border-radius: var(--radius-md);">
-          <iframe id="pdfFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-          <a id="pdfDownloadLink" href="" target="_blank" class="btn btn-secondary btn-sm">Direct Download</a>
-          <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('pdfPreviewModal')">Close</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal(modal);
-    });
-  }
-
-  document.getElementById('pdfModalTitle').textContent = `Resume Preview - ${title || 'Candidate'}`;
-  document.getElementById('pdfFrame').src = pdfUrl;
-  document.getElementById('pdfDownloadLink').href = pdfUrl;
-  openModal('pdfPreviewModal');
-}
-
 // Quick Helper for Status Modal Pre-filling (Admin Applications Page)
 function openStatusModal(appId, studentName, jobTitle, currentStatus, currentRemarks) {
   const form = document.getElementById('statusModalForm');

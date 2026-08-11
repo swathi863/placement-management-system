@@ -5,37 +5,37 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">Registered Student Directory</h1>
-    <p class="page-subtitle">Inspect student profiles, academic CGPA records, uploaded resumes, and application histories.</p>
-  </div>
-
-  <div style="display: flex; gap: 0.75rem;">
-    <button type="button" class="btn btn-secondary" onclick="exportTableToCSV('studentsTable', 'students_directory.csv')">
-      📥 Export CSV Directory
-    </button>
+    <h1 class="page-title">Registered Students</h1>
+    <p class="page-subtitle">View and manage registered student candidate profiles, academic CGPAs, and uploaded resumes.</p>
   </div>
 </div>
 
 <!-- Instant Live Search & Filter Bar -->
 <div class="filter-card">
   <div style="flex: 1; min-width: 260px;">
-    <input type="text" class="form-control" placeholder="⚡ Live Search by Student Name, Email, Branch, or Phone..." data-table-target="studentsTable">
+    <input type="text" class="form-control" placeholder="⚡ Live Search by Student Name, Email, Branch, or Skills..." data-table-target="studentsTable">
   </div>
 
   <form method="GET" action="{{ url_for('admin.students') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
     <select name="branch" class="form-select" style="width: auto;" onchange="this.form.submit()">
       <option value="">-- All Branches --</option>
-      {% for b in branches %}
-        <option value="{{ b }}" {% if selected_branch == b %}selected{% endif %}>{{ b }}</option>
-      {% endfor %}
+      <option value="Computer Science" {% if selected_branch == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+      <option value="Information Technology" {% if selected_branch == 'Information Technology' %}selected{% endif %}>Information Technology</option>
+      <option value="Electronics" {% if selected_branch == 'Electronics' %}selected{% endif %}>Electronics</option>
+      <option value="Mechanical" {% if selected_branch == 'Mechanical' %}selected{% endif %}>Mechanical</option>
+      <option value="Civil" {% if selected_branch == 'Civil' %}selected{% endif %}>Civil</option>
     </select>
 
-    <input type="number" step="0.1" name="min_cgpa" class="form-control" style="width: 130px;" placeholder="Min CGPA" value="{{ min_cgpa or '' }}">
+    <select name="min_cgpa" class="form-select" style="width: auto;" onchange="this.form.submit()">
+      <option value="">-- Min CGPA --</option>
+      <option value="6.0" {% if selected_cgpa == '6.0' %}selected{% endif %}>6.0+</option>
+      <option value="7.0" {% if selected_cgpa == '7.0' %}selected{% endif %}>7.0+</option>
+      <option value="8.0" {% if selected_cgpa == '8.0' %}selected{% endif %}>8.0+</option>
+      <option value="9.0" {% if selected_cgpa == '9.0' %}selected{% endif %}>9.0+</option>
+    </select>
 
-    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
-
-    {% if selected_branch or min_cgpa %}
-      <a href="{{ url_for('admin.students') }}" class="btn btn-secondary btn-sm">Clear</a>
+    {% if selected_branch or selected_cgpa %}
+      <a href="{{ url_for('admin.students') }}" class="btn btn-secondary btn-sm" style="align-self: center;">Clear Filters</a>
     {% endif %}
   </form>
 </div>
@@ -51,8 +51,8 @@
           <th>Branch</th>
           <th>CGPA</th>
           <th>Grad Year</th>
-          <th>Uploaded Resume</th>
-          <th style="text-align: right;">Action</th>
+          <th>Resume</th>
+          <th style="text-align: right;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -61,7 +61,13 @@
             <td><strong>#{{ student.id }}</strong></td>
             <td>
               <div style="font-weight: 700; color: var(--text-main);">{{ student.name }}</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">Registered: {{ student.created_at.strftime('%b %d, %Y') }}</div>
+              <div style="font-size: 0.775rem; color: var(--text-muted);">
+                {% if student.skills %}
+                  Skills: {{ student.skills[:30] }}{% if student.skills|length > 30 %}...{% endif %}
+                {% else %}
+                  No skills listed
+                {% endif %}
+              </div>
             </td>
             <td>
               <div>{{ student.email }}</div>
@@ -74,16 +80,16 @@
             <td>{{ student.grad_year }}</td>
             <td>
               {% if student.resume_url %}
-                <button type="button" class="btn btn-secondary btn-sm" onclick="openPdfPreviewModal('{{ url_for('static', filename='uploads/resumes/' + student.resume_url) }}', '{{ student.name }}')">
-                  👁️ Preview Resume
-                </button>
+                <a href="{{ url_for('main.uploaded_file', filename='resumes/' ~ student.resume_url) }}" target="_blank" class="btn btn-secondary btn-sm">
+                  📄 View PDF
+                </a>
               {% else %}
                 <span style="font-size: 0.8rem; color: var(--text-light);">No Resume</span>
               {% endif %}
             </td>
             <td style="text-align: right;">
               <a href="{{ url_for('admin.student_detail', student_id=student.id) }}" class="btn btn-secondary btn-sm">
-                View Full Profile &rarr;
+                View Profile &rarr;
               </a>
             </td>
           </tr>
@@ -93,9 +99,9 @@
   </div>
 {% else %}
   <div class="card" style="text-align: center; padding: 4rem 2rem;">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🎓</div>
     <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">No Students Found</h2>
-    <p style="color: var(--text-muted);">No student records match the selected filter criteria.</p>
+    <p style="color: var(--text-muted);">No student candidate profiles match the selected filter criteria.</p>
   </div>
 {% endif %}
 {% endblock %}

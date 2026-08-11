@@ -116,9 +116,9 @@
             </td>
             <td>
               {% if app.student.resume_url %}
-                <button type="button" class="btn btn-secondary btn-sm" onclick="openPdfPreviewModal('{{ url_for('static', filename='uploads/resumes/' + app.student.resume_url) }}', '{{ app.student.name }}')">
-                  👁️ Preview
-                </button>
+                <a href="{{ url_for('main.uploaded_file', filename='resumes/' ~ app.student.resume_url) }}" target="_blank" class="btn btn-secondary btn-sm">
+                  📄 Open PDF
+                </a>
               {% else %}
                 <button type="button" class="btn btn-secondary btn-sm" onclick="openUploadModal({{ app.student.id }}, '{{ app.student.name }}')">
                   📤 Attach PDF
