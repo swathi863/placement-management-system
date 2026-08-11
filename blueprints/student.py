@@ -224,9 +224,22 @@ def apply_job(job_id):
         flash('This job posting is no longer active or applications have closed.', 'danger')
         return redirect(url_for('student.job_detail', job_id=job.id))
 
+    # Allow direct resume file upload inside the Apply modal
+    if 'resume' in request.files and request.files['resume'].filename != '':
+        filename, error = save_uploaded_file(
+            request.files['resume'],
+            current_app.config['RESUME_FOLDER'],
+            current_app.config['ALLOWED_RESUME_EXTENSIONS']
+        )
+        if error:
+            flash(error, 'danger')
+            return redirect(url_for('student.job_detail', job_id=job.id))
+        student.resume_filename = filename
+        db.session.commit()
+
     if not student.resume_filename:
-        flash('Please upload your resume in Profile before applying for jobs.', 'warning')
-        return redirect(url_for('student.resume'))
+        flash('Please attach your PDF/DOCX resume file before applying for this job.', 'warning')
+        return redirect(url_for('student.job_detail', job_id=job.id))
 
     # Verify eligibility
     branches_list = job.get_branches_list()

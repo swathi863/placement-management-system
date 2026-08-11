@@ -109,35 +109,31 @@
   </div>
 </div>
 
-<!-- Apply Modal -->
+<!-- Apply Modal with Resume Upload Support -->
 <div id="applyModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
       <h2 style="font-size: 1.25rem; font-weight: 700;">Confirm Job Application</h2>
       <button type="button" class="modal-close" onclick="closeModal('applyModal')">&times;</button>
     </div>
-    <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST">
+    <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST" enctype="multipart/form-data">
       <div style="margin-bottom: 1.2rem; background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md);">
         <div style="font-weight: 700;">{{ job.title }}</div>
         <div style="font-size: 0.875rem; color: var(--text-muted);">{{ job.company.name }} &bull; {{ job.location }}</div>
         <div style="font-size: 0.85rem; margin-top: 0.5rem;">
           <strong>Applying As:</strong> {{ current_user.name }} ({{ current_user.email }})
         </div>
-        <div style="font-size: 0.85rem;">
-          <strong>Uploaded Resume:</strong> 
-          {% if current_user.resume_url %}
-            <span style="color: #059669; font-weight: 600;">✓ Ready ({{ current_user.resume_url.split('_', 1)[1] if '_' in current_user.resume_url else current_user.resume_url }})</span>
-          {% else %}
-            <span style="color: #dc2626; font-weight: 600;">⚠️ No resume uploaded yet</span>
-          {% endif %}
-        </div>
       </div>
 
-      {% if not current_user.resume_url %}
-        <div class="alert alert-warning" style="font-size: 0.85rem;">
-          We recommend <a href="{{ url_for('student.resume') }}" style="text-decoration: underline;">uploading your resume</a> to increase your hiring chances before submitting.
+      <div class="form-group">
+        <label for="resume" class="form-label">
+          Upload PDF/DOCX Resume {% if current_user.resume_url %}<span style="color: #059669; font-weight: 600;">(Current: Attached)</span>{% else %}<span style="color: #dc2626;">* Required</span>{% endif %}
+        </label>
+        <input type="file" name="resume" id="resume" class="form-control" accept=".pdf,.doc,.docx" {% if not current_user.resume_url %}required{% endif %}>
+        <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Select your updated PDF or Word document resume (Max 16MB).
         </div>
-      {% endif %}
+      </div>
 
       <div class="form-group">
         <label for="cover_note" class="form-label">Note for Recruiter (Optional)</label>

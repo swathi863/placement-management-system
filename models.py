@@ -23,6 +23,10 @@ class Student(db.Model):
     # Relationships
     applications = db.relationship('Application', backref='student', lazy=True, cascade='all, delete-orphan')
 
+    @property
+    def resume_url(self):
+        return self.resume_filename
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -72,6 +76,10 @@ class Company(db.Model):
     
     # Relationships
     jobs = db.relationship('Job', backref='company', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def logo_url(self):
+        return self.logo_filename
 
     def __repr__(self):
         return f'<Company {self.name}>'
