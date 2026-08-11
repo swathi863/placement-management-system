@@ -346,7 +346,7 @@ a:hover {
   gap: 1.25rem;
 }
 
-/* Buttons System */
+/* Buttons System & Alignment Engine */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -356,12 +356,21 @@ a:hover {
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.925rem;
+  line-height: 1.25;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
   white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.btn-full {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .btn-primary {
@@ -399,9 +408,10 @@ a:hover {
 }
 
 .btn-sm {
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.85rem;
   font-size: 0.825rem;
   border-radius: var(--radius-sm);
+  line-height: 1.2;
 }
 
 .btn-lg {
@@ -420,6 +430,7 @@ a:hover {
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.02em;
+  vertical-align: middle;
 }
 
 .badge-applied { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
