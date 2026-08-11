@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from models import db, Student, Company, Job, Application, Interview
-from utils import admin_required, save_uploaded_file, send_notification_email
+from utils import admin_required, save_uploaded_file, send_notification_email, calculate_resume_match_score
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -100,6 +100,40 @@ def student_detail(student_id):
     student = Student.query.get_or_404(student_id)
     applications = Application.query.filter_by(student_id=student.id).order_by(Application.applied_at.desc()).all()
     return render_template('admin/student_detail.html', student=student, applications=applications)
+
+
+@admin_bp.route('/student/<int:student_id>/upload-resume', methods=['POST'])
+@admin_required
+def upload_student_resume(student_id):
+    student = Student.query.get_or_404(student_id)
+    if 'resume' in request.files and request.files['resume'].filename != '':
+        filename, err = save_uploaded_file(
+            request.files['resume'],
+            current_app.config['RESUME_FOLDER'],
+            current_app.config['ALLOWED_RESUME_EXTENSIONS']
+        )
+        if err:
+            flash(err, 'danger')
+            return redirect(request.referrer or url_for('admin.applications'))
+        student.resume_filename = filename
+        
+        # Re-score student's pending or zero applications with new resume file
+        for app_item in student.applications:
+            score = calculate_resume_match_score(student, app_item.job, app_item.cover_note or '')
+            app_item.match_score = score
+            if score >= 60.0:
+                app_item.screening_result = 'Passed'
+                if app_item.status in ['Applied', 'Rejected']:
+                    app_item.status = 'Shortlisted'
+                    app_item.remarks = f"PASSED Automated ATS Resume Screening with Match Score of {score}%."
+            else:
+                app_item.screening_result = 'Failed'
+
+        db.session.commit()
+        flash(f'Resume uploaded and ATS score recalculated for {student.name}!', 'success')
+    else:
+        flash('No file selected.', 'warning')
+    return redirect(request.referrer or url_for('admin.applications'))
 
 
 @admin_bp.route('/student/<int:student_id>/delete', methods=['POST'])
@@ -418,6 +452,26 @@ def applications():
     status_filter = request.args.get('status', '').strip()
     job_id = request.args.get('job_id', '').strip()
     search = request.args.get('search', '').strip()
+
+    # Auto-score any existing application that has match_score == 0.0 or screening_result == 'Pending'
+    pending_apps = Application.query.filter(
+        (Application.match_score == 0.0) | (Application.screening_result == 'Pending')
+    ).all()
+    if pending_apps:
+        for p_app in pending_apps:
+            score = calculate_resume_match_score(p_app.student, p_app.job, p_app.cover_note or '')
+            p_app.match_score = score
+            if score >= 60.0:
+                p_app.screening_result = 'Passed'
+                if p_app.status == 'Applied':
+                    p_app.status = 'Shortlisted'
+                    p_app.remarks = f"PASSED Automated ATS Resume Screening with Match Score of {score}%."
+            else:
+                p_app.screening_result = 'Failed'
+                if p_app.status == 'Applied':
+                    p_app.status = 'Rejected'
+                    p_app.remarks = f"FAILED Automated ATS Resume Screening with Match Score of {score}% (Cutoff: 60%)."
+        db.session.commit()
 
     query = Application.query.join(Student).join(Job).join(Company)
 

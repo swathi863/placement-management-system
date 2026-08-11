@@ -87,7 +87,7 @@
                   </span>
                 {% endif %}
               {% else %}
-                <span style="font-size: 0.8rem; color: var(--text-light);">Pending</span>
+                <span style="font-size: 0.8rem; color: var(--text-light);">Calculating...</span>
               {% endif %}
             </td>
             <td style="font-size: 0.85rem;">{{ app.applied_at.strftime('%b %d, %Y') }}</td>
@@ -120,7 +120,9 @@
                   👁️ Preview
                 </button>
               {% else %}
-                <span style="font-size: 0.8rem; color: var(--text-light);">No Resume</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openUploadModal({{ app.student.id }}, '{{ app.student.name }}')">
+                  📤 Attach PDF
+                </button>
               {% endif %}
             </td>
             <td style="text-align: right;">
@@ -230,4 +232,41 @@
     </form>
   </div>
 </div>
+
+<!-- Modal 3: Admin Attach Student Resume -->
+<div id="uploadModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 style="font-size: 1.25rem; font-weight: 700;">Attach Resume for Student</h2>
+      <button type="button" class="modal-close" onclick="closeModal('uploadModal')">&times;</button>
+    </div>
+    <form id="uploadModalForm" method="POST" enctype="multipart/form-data">
+      <div style="background-color: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-weight: 700;" id="uploadStudentName">Student Name</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Attach a PDF/Word resume file for this candidate to calculate their ATS score.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="admin_resume_file" class="form-label">Select PDF/DOCX File</label>
+        <input type="file" name="resume" id="admin_resume_file" class="form-control" accept=".pdf,.doc,.docx" required>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Upload & Recalculate ATS Score</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openUploadModal(studentId, studentName) {
+  const form = document.getElementById('uploadModalForm');
+  if (form) {
+    form.action = `/admin/student/${studentId}/upload-resume`;
+    document.getElementById('uploadStudentName').textContent = studentName;
+    openModal('uploadModal');
+  }
+}
+</script>
 {% endblock %}
