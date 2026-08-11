@@ -44,6 +44,18 @@ def dashboard():
                            recent_jobs=recent_jobs)
 
 
+@admin_bp.route('/reset-database', methods=['POST'])
+@admin_required
+def reset_database():
+    """Wipes all database tables (students, companies, jobs, applications, interviews) and recreates clean schemas with ONLY default Admin."""
+    db.drop_all()
+    db.create_all()
+    from seed import seed_database
+    seed_database()
+    flash('Database completely reset! All student records, companies, jobs, and applications have been cleared to start fresh.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
 # -------------------------
 # MANAGE STUDENTS
 # -------------------------

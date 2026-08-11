@@ -8,9 +8,12 @@
     <h1 class="page-title">Administrator Placement Dashboard</h1>
     <p class="page-subtitle">Overview of campus recruitment statistics, student placements, and active drives</p>
   </div>
-  <div style="display: flex; gap: 0.75rem;">
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
     <a href="{{ url_for('admin.add_job') }}" class="btn btn-primary">+ Post New Job</a>
     <a href="{{ url_for('admin.add_company') }}" class="btn btn-secondary">+ Add Company</a>
+    <form action="{{ url_for('admin.reset_database') }}" method="POST" onsubmit="return confirm('WARNING: This will delete ALL student accounts, companies, jobs, applications, and interviews to start completely fresh! Are you sure?');" style="display: inline;">
+      <button type="submit" class="btn btn-danger">🧹 Clear Database (Start Fresh)</button>
+    </form>
   </div>
 </div>
 
