@@ -91,9 +91,16 @@ def create_app():
     def request_entity_too_large(e):
         return render_template('errors/413.html'), 413
 
-    # Database Initialization & Seeding
+    # Database Initialization & Auto-Migration for Render PostgreSQL
     with app.app_context():
         db.create_all()
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE application ADD COLUMN IF NOT EXISTS match_score FLOAT DEFAULT 0.0;"))
+                conn.execute(db.text("ALTER TABLE application ADD COLUMN IF NOT EXISTS screening_result VARCHAR(20) DEFAULT 'Pending';"))
+                conn.commit()
+        except Exception as e:
+            app.logger.info(f"Auto-migration notice: {e}")
         seed_database()
 
     return app
