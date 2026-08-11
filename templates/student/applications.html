@@ -1,78 +1,115 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}My Job Applications - Student Portal{% endblock %}
+{% block title %}My Applications - University Placement Portal{% block title_end %}{% endblock %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">My Applications</h1>
-    <p class="page-subtitle">Track status, interview schedules, and recruiter remarks for your applications</p>
+    <p class="page-subtitle">Track your live recruitment application progress, recruiter remarks, and interview status.</p>
   </div>
-  <div>
-    <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">Find More Jobs</a>
-  </div>
-</div>
-
-<!-- Filter Pills -->
-<div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-  <a href="{{ url_for('student.applications') }}" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}">
-    All ({{ applications|length if not current_status else 'All' }})
+  <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">
+    + Explore Open Drives
   </a>
-  <a href="{{ url_for('student.applications', status='Applied') }}" class="btn btn-sm {% if current_status == 'Applied' %}btn-primary{% else %}btn-secondary{% endif %}">Applied</a>
-  <a href="{{ url_for('student.applications', status='Under Review') }}" class="btn btn-sm {% if current_status == 'Under Review' %}btn-primary{% else %}btn-secondary{% endif %}">Under Review</a>
-  <a href="{{ url_for('student.applications', status='Shortlisted') }}" class="btn btn-sm {% if current_status == 'Shortlisted' %}btn-primary{% else %}btn-secondary{% endif %}">Shortlisted</a>
-  <a href="{{ url_for('student.applications', status='Interview Scheduled') }}" class="btn btn-sm {% if current_status == 'Interview Scheduled' %}btn-primary{% else %}btn-secondary{% endif %}">Interview Scheduled</a>
-  <a href="{{ url_for('student.applications', status='Selected') }}" class="btn btn-sm {% if current_status == 'Selected' %}btn-primary{% else %}btn-secondary{% endif %}">Selected</a>
-  <a href="{{ url_for('student.applications', status='Rejected') }}" class="btn btn-sm {% if current_status == 'Rejected' %}btn-primary{% else %}btn-secondary{% endif %}">Rejected</a>
 </div>
 
-<!-- Applications Table / Cards -->
 {% if applications %}
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Company & Job Title</th>
-          <th>Applied Date</th>
-          <th>Current Status</th>
-          <th>Latest Remarks</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for app in applications %}
-          <tr>
-            <td>
-              <div style="font-weight: 600; font-size: 0.95rem;">
-                <a href="{{ url_for('student.application_detail', app_id=app.id) }}">{{ app.job.title }}</a>
+  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for app in applications %}
+      <div class="card">
+        <div class="card-header" style="flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            {% if app.job.company.logo_url %}
+              <img src="{{ url_for('static', filename='uploads/logos/' + app.job.company.logo_url) }}" alt="{{ app.job.company.name }}" style="width: 48px; height: 48px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 2px;">
+            {% else %}
+              <div style="width: 48px; height: 48px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800;">
+                {{ app.job.company.name[:2].upper() }}
               </div>
-              <div style="font-size: 0.825rem; color: var(--text-muted);">🏢 {{ app.job.company.name }} &bull; 💰 {{ app.job.salary_package or 'N/A' }}</div>
-            </td>
-            <td>
-              <span style="font-size: 0.85rem;">{{ app.applied_at|format_date }}</span>
-            </td>
-            <td>
-              <span class="badge {{ app.status|status_badge }}">{{ app.status }}</span>
-            </td>
-            <td style="max-width: 260px;">
-              <span style="font-size: 0.825rem; color: var(--text-muted);">
-                {{ app.remarks or 'No additional remarks provided yet.' }}
-              </span>
-            </td>
-            <td>
-              <a href="{{ url_for('student.application_detail', app_id=app.id) }}" class="btn btn-secondary btn-sm">
-                View Timeline
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            {% endif %}
+            <div>
+              <h3 style="font-size: 1.25rem; font-weight: 700;">{{ app.job.title }}</h3>
+              <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">
+                {{ app.job.company.name }} &bull; {{ app.job.location }} &bull; {{ app.job.salary_package }}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            {% if app.status == 'Applied' %}
+              <span class="badge badge-applied">Applied</span>
+            {% elif app.status == 'Under Review' %}
+              <span class="badge badge-review">Under Review</span>
+            {% elif app.status == 'Shortlisted' %}
+              <span class="badge badge-shortlisted">★ Shortlisted</span>
+            {% elif app.status == 'Interview Scheduled' %}
+              <span class="badge badge-interview">📅 Interview Scheduled</span>
+            {% elif app.status == 'Selected' %}
+              <span class="badge badge-selected">🎉 Selected / Offer</span>
+            {% elif app.status == 'Rejected' %}
+              <span class="badge badge-rejected">Not Selected</span>
+            {% else %}
+              <span class="badge badge-secondary">{{ app.status }}</span>
+            {% endif %}
+            
+            <a href="{{ url_for('student.application_detail', app_id=app.id) }}" class="btn btn-secondary btn-sm">
+              View Details &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- Horizontal Multi-Step Visual Progress Tracker -->
+        <div class="step-tracker">
+          <div class="step-item completed">
+            <div class="step-node">✓</div>
+            <div class="step-label">Applied</div>
+          </div>
+
+          <div class="step-item {% if app.status in ['Under Review', 'Shortlisted', 'Interview Scheduled', 'Selected', 'Rejected'] %}completed{% else %}active{% endif %}">
+            <div class="step-node">{% if app.status in ['Under Review', 'Shortlisted', 'Interview Scheduled', 'Selected', 'Rejected'] %}✓{% else %}2{% endif %}</div>
+            <div class="step-label">Screening</div>
+          </div>
+
+          <div class="step-item {% if app.status in ['Shortlisted', 'Interview Scheduled', 'Selected'] %}completed{% elif app.status == 'Rejected' %}active{% else %}{% endif %}">
+            <div class="step-node">{% if app.status in ['Shortlisted', 'Interview Scheduled', 'Selected'] %}✓{% else %}3{% endif %}</div>
+            <div class="step-label">Shortlisted</div>
+          </div>
+
+          <div class="step-item {% if app.status in ['Interview Scheduled', 'Selected'] %}completed{% else %}{% endif %}">
+            <div class="step-node">{% if app.status in ['Interview Scheduled', 'Selected'] %}✓{% else %}4{% endif %}</div>
+            <div class="step-label">Interview</div>
+          </div>
+
+          <div class="step-item {% if app.status == 'Selected' %}completed{% else %}{% endif %}">
+            <div class="step-node">{% if app.status == 'Selected' %}★{% else %}5{% endif %}</div>
+            <div class="step-label">Final Offer</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-subtle); padding: 0.85rem 1.1rem; border-radius: var(--radius-md); font-size: 0.875rem;">
+          <div>
+            <span style="color: var(--text-muted); font-weight: 600;">Applied Date:</span>
+            <strong>{{ app.applied_at.strftime('%B %d, %Y') }}</strong>
+          </div>
+          {% if app.remarks %}
+            <div>
+              <span style="color: var(--text-muted); font-weight: 600;">Recruiter Remark:</span>
+              <strong style="color: var(--primary);">"{{ app.remarks }}"</strong>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
   </div>
 {% else %}
-  <div class="card" style="text-align: center; padding: 3rem;">
-    <p style="color: var(--text-muted); margin-bottom: 1rem;">No applications found matching the selected status filter.</p>
-    <a href="{{ url_for('student.jobs') }}" class="btn btn-primary btn-sm">Browse Available Jobs</a>
+  <div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">💼</div>
+    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem;">No Applications Submitted Yet</h2>
+    <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem auto;">
+      You have not applied for any recruitment drives yet. Explore open job drives matching your branch and CGPA to apply.
+    </p>
+    <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">
+      Browse Open Job Drives
+    </a>
   </div>
 {% endif %}
 {% endblock %}

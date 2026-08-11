@@ -1,166 +1,152 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{{ job.title }} - {{ job.company.name }} | Job Details{% endblock %}
+{% block title %}{{ job.title }} - {{ job.company.name }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <a href="{{ url_for('student.jobs') }}" style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; display: inline-block;">&larr; Back to All Jobs</a>
-    <h1 class="page-title">{{ job.title }}</h1>
-    <p class="page-subtitle">🏢 {{ job.company.name }} &bull; {{ job.company.industry or 'Technology' }}</p>
-  </div>
-  <div>
-    {% if application %}
-      <span class="badge {{ application.status|status_badge }}" style="font-size: 1rem; padding: 0.5rem 1rem;">
-        Applied Status: {{ application.status }}
-      </span>
-    {% elif is_eligible and job.is_active and not job.is_expired() %}
-      <button type="button" class="btn btn-primary" onclick="openModal('applyModal');">Apply for Position</button>
-    {% else %}
-      <span class="badge badge-rejected" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Not Eligible / Closed</span>
-    {% endif %}
-  </div>
-</div>
-
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.75rem;">
-  <!-- Left Side: Detailed Description & Requirements -->
-  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <div class="card">
-      <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Job Description</h2>
-      <p style="white-space: pre-line; line-height: 1.6; color: var(--text-main);">
-        {{ job.description }}
-      </p>
-
-      {% if job.requirements %}
-        <h2 style="font-size: 1.25rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 1rem;">Requirements & Qualifications</h2>
-        <p style="white-space: pre-line; line-height: 1.6; color: var(--text-main);">
-          {{ job.requirements }}
-        </p>
-      {% endif %}
-    </div>
-
-    <!-- Company Overview -->
-    <div class="card">
-      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;">About {{ job.company.name }}</h2>
-      <p style="color: var(--text-muted); font-size: 0.925rem; line-height: 1.5; margin-bottom: 1rem;">
-        {{ job.company.description or 'No company description provided.' }}
-      </p>
-      <div style="display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--text-muted); flex-wrap: wrap;">
-        <div>📍 Location: <strong>{{ job.company.location or 'N/A' }}</strong></div>
-        {% if job.company.website %}
-          <div>🌐 Website: <a href="{{ job.company.website }}" target="_blank" rel="noopener">{{ job.company.website }}</a></div>
-        {% endif %}
-        {% if job.company.contact_email %}
-          <div>✉️ Contact: <strong>{{ job.company.contact_email }}</strong></div>
-        {% endif %}
-      </div>
-    </div>
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('student.jobs') }}" class="btn btn-secondary btn-sm">
+      &larr; Back to Open Drives
+    </a>
   </div>
 
-  <!-- Right Side: Job Overview & Eligibility Sidebar -->
-  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <!-- Job Summary Card -->
-    <div class="card">
-      <h2 class="card-title" style="margin-bottom: 1rem;">Job Overview</h2>
-      
-      <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.9rem;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <span style="color: var(--text-muted);">Job Type</span>
-          <span style="font-weight: 600;">{{ job.job_type }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <span style="color: var(--text-muted);">Package / Compensation</span>
-          <span style="font-weight: 600; color: var(--primary);">{{ job.salary_package or 'Negotiable' }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <span style="color: var(--text-muted);">Location</span>
-          <span style="font-weight: 600;">{{ job.location or 'Flexible' }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-          <span style="color: var(--text-muted);">Application Deadline</span>
-          <span style="font-weight: 600; color: var(--danger-text);">{{ job.deadline|format_date if job.deadline else 'Open' }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span style="color: var(--text-muted);">Posted Date</span>
-          <span>{{ job.created_at|format_date }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Eligibility Criteria Card -->
-    <div class="card">
-      <h2 class="card-title" style="margin-bottom: 1rem;">Your Eligibility Check</h2>
-
-      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-        <!-- CGPA Requirement -->
-        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-md);">
-          <div>
-            <div style="font-size: 0.825rem; color: var(--text-muted);">Minimum CGPA</div>
-            <div style="font-weight: 600;">Required: {{ job.min_cgpa }} | Yours: {{ student.cgpa }}</div>
-          </div>
-          <span style="font-size: 1.2rem;">{% if is_cgpa_eligible %}✅{% else %}❌{% endif %}</span>
-        </div>
-
-        <!-- Branch Requirement -->
-        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-md);">
-          <div>
-            <div style="font-size: 0.825rem; color: var(--text-muted);">Eligible Branches</div>
-            <div style="font-weight: 600; font-size: 0.85rem;">{{ job.eligible_branches }}</div>
-          </div>
-          <span style="font-size: 1.2rem;">{% if is_branch_eligible %}✅{% else %}❌{% endif %}</span>
-        </div>
-      </div>
-
-      <div style="margin-top: 1.25rem;">
-        {% if application %}
-          <a href="{{ url_for('student.application_detail', app_id=application.id) }}" class="btn btn-secondary btn-full">
-            Track Application Status &rarr;
-          </a>
-        {% elif is_eligible and job.is_active and not job.is_expired() %}
-          <button type="button" class="btn btn-primary btn-full" onclick="openModal('applyModal');">Apply Now</button>
-        {% elif not student.resume_filename %}
-          <a href="{{ url_for('student.resume') }}" class="btn btn-secondary btn-full" style="border-color: var(--warning-border); color: var(--warning-text); background-color: var(--warning-bg);">
-            ⚠️ Upload Resume to Apply
-          </a>
+  <div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 1.2rem;">
+        {% if job.company.logo_url %}
+          <img src="{{ url_for('static', filename='uploads/logos/' + job.company.logo_url) }}" alt="{{ job.company.name }}" style="width: 64px; height: 64px; object-fit: contain; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 4px; background: white;">
         {% else %}
-          <button class="btn btn-secondary btn-full" disabled style="opacity: 0.6; cursor: not-allowed;">
-            Criteria Not Met / Drive Closed
+          <div style="width: 64px; height: 64px; border-radius: var(--radius-md); background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800;">
+            {{ job.company.name[:2].upper() }}
+          </div>
+        {% endif %}
+        <div>
+          <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">{{ job.title }}</h1>
+          <div style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">
+            <span>{{ job.company.name }}</span> &bull; {{ job.location }} &bull; <span style="color: var(--text-main); font-weight: 700;">{{ job.job_type }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+        <span class="badge badge-match">
+          <span class="pulse-dot"></span> Match Score: {% if is_eligible %}100% Eligible{% else %}Requirements Check Needed{% endif %}
+        </span>
+        <span style="font-size: 1.35rem; font-weight: 800; color: var(--primary);">{{ job.salary_package }}</span>
+      </div>
+    </div>
+
+    <!-- Eligibility Status Callout -->
+    {% if is_eligible %}
+      <div class="alert alert-success" style="margin-bottom: 1.5rem;">
+        <div>
+          <strong>You are Eligible!</strong> Your branch ({{ current_user.branch }}) and CGPA ({{ current_user.cgpa }}) meet the drive criteria (Min CGPA: {{ job.min_cgpa }}).
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+        <div>
+          <strong>Eligibility Notice:</strong> Your current CGPA ({{ current_user.cgpa }}) or Branch ({{ current_user.branch }}) does not meet the minimum drive requirements (Min CGPA: {{ job.min_cgpa }} | Branches: {{ job.allowed_branches }}).
+        </div>
+      </div>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1.2rem; background-color: var(--bg-subtle); border-radius: var(--radius-md); margin-bottom: 1.8rem;">
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Minimum CGPA</span>
+        <div style="font-size: 1.1rem; font-weight: 700;">{{ job.min_cgpa }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Eligible Branches</span>
+        <div style="font-size: 0.95rem; font-weight: 700;">{{ job.allowed_branches }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Application Deadline</span>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #dc2626;">{{ job.deadline.strftime('%B %d, %Y') if job.deadline else 'Open' }}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem; font-weight: 700;">Job Description & Role Summary</h3>
+      <div style="line-height: 1.7; color: var(--text-main); white-space: pre-line;">{{ job.description }}</div>
+    </div>
+
+    {% if job.requirements %}
+    <div style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem; font-weight: 700;">Key Requirements & Prerequisites</h3>
+      <div style="line-height: 1.7; color: var(--text-main); white-space: pre-line;">{{ job.requirements }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Action Section -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        {% if has_applied %}
+          <span class="badge badge-applied" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+            ✓ You Applied on {{ application.applied_at.strftime('%b %d, %Y') }} (Status: {{ application.status }})
+          </span>
+        {% else %}
+          <span style="font-size: 0.9rem; color: var(--text-muted);">Make sure your profile and uploaded resume are up to date before applying.</span>
+        {% endif %}
+      </div>
+
+      <div>
+        {% if has_applied %}
+          <a href="{{ url_for('student.application_detail', app_id=application.id) }}" class="btn btn-primary">
+            View Application Status
+          </a>
+        {% elif is_eligible and not is_past_deadline %}
+          <button type="button" class="btn btn-primary" onclick="openModal('applyModal')" style="padding: 0.75rem 1.8rem; font-weight: 700;">
+            Apply Now &rarr;
           </button>
+        {% elif is_past_deadline %}
+          <button type="button" class="btn btn-secondary" disabled>Deadline Passed</button>
+        {% else %}
+          <button type="button" class="btn btn-secondary" disabled>Not Eligible for Drive</button>
         {% endif %}
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Dialog: Submit Job Application -->
-<div class="modal-overlay" id="applyModal">
+<!-- Apply Modal -->
+<div id="applyModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <h2 style="font-size: 1.2rem; font-weight: 700;">Submit Job Application</h2>
-      <button type="button" class="modal-close">&times;</button>
+      <h2 style="font-size: 1.25rem; font-weight: 700;">Confirm Job Application</h2>
+      <button type="button" class="modal-close" onclick="closeModal('applyModal')">&times;</button>
     </div>
-
     <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST">
-      <div style="background-color: var(--primary-light); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
-        <div style="font-weight: 600; color: var(--primary);">{{ job.title }}</div>
-        <div style="font-size: 0.825rem; color: var(--text-muted);">{{ job.company.name }} &bull; {{ job.location }}</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Attached Resume</label>
-        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">
-          📄 {{ student.resume_filename.split('_', 1)[-1] if student.resume_filename else 'No resume attached' }}
+      <div style="margin-bottom: 1.2rem; background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md);">
+        <div style="font-weight: 700;">{{ job.title }}</div>
+        <div style="font-size: 0.875rem; color: var(--text-muted);">{{ job.company.name }} &bull; {{ job.location }}</div>
+        <div style="font-size: 0.85rem; margin-top: 0.5rem;">
+          <strong>Applying As:</strong> {{ current_user.name }} ({{ current_user.email }})
+        </div>
+        <div style="font-size: 0.85rem;">
+          <strong>Uploaded Resume:</strong> 
+          {% if current_user.resume_url %}
+            <span style="color: #059669; font-weight: 600;">✓ Ready ({{ current_user.resume_url.split('_', 1)[1] if '_' in current_user.resume_url else current_user.resume_url }})</span>
+          {% else %}
+            <span style="color: #dc2626; font-weight: 600;">⚠️ No resume uploaded yet</span>
+          {% endif %}
         </div>
       </div>
 
+      {% if not current_user.resume_url %}
+        <div class="alert alert-warning" style="font-size: 0.85rem;">
+          We recommend <a href="{{ url_for('student.resume') }}" style="text-decoration: underline;">uploading your resume</a> to increase your hiring chances before submitting.
+        </div>
+      {% endif %}
+
       <div class="form-group">
-        <label class="form-label" for="cover_note">Cover Note / Remarks (Optional)</label>
-        <textarea id="cover_note" name="cover_note" class="form-control" rows="4" placeholder="Briefly describe why you are interested in this position..."></textarea>
+        <label for="cover_note" class="form-label">Note for Recruiter (Optional)</label>
+        <textarea name="cover_note" id="cover_note" class="form-control" rows="3" placeholder="Highlight key projects, relevant certifications, or why you are a great fit..."></textarea>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
-        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-        <button type="submit" class="btn btn-primary">Confirm & Submit Application</button>
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('applyModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Application</button>
       </div>
     </form>
   </div>
