@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Participating Companies - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Recruiting Companies</h1>
+    <p class="page-subtitle">Explore top industry partners visiting our campus</p>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-card">
+  <form action="{{ url_for('student.companies') }}" method="GET" style="display: flex; gap: 1rem; width: 100%; flex-wrap: wrap;">
+    <input type="text" name="search" class="form-control" placeholder="Search company by name or industry..." value="{{ search }}" style="flex: 1; min-width: 240px;">
+    <button type="submit" class="btn btn-primary">Search</button>
+    {% if search %}
+      <a href="{{ url_for('student.companies') }}" class="btn btn-secondary">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Companies Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+  {% if companies %}
+    {% for company in companies %}
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background-color: var(--bg-subtle); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.4rem; color: var(--primary); border: 1px solid var(--border-color); flex-shrink: 0;">
+              {% if company.logo_filename %}
+                <img src="{{ url_for('main.uploaded_file', filename='logos/' ~ company.logo_filename) }}" alt="{{ company.name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: var(--radius-md);">
+              {% else %}
+                {{ company.name[0] }}
+              {% endif %}
+            </div>
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ company.name }}</h2>
+              <span class="badge badge-secondary" style="margin-top: 0.2rem;">{{ company.industry or 'Technology' }}</span>
+            </div>
+          </div>
+
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+            {{ company.description or 'No company description provided.' }}
+          </p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.825rem; color: var(--text-muted);">
+          <span>📍 {{ company.location or 'Multiple Locations' }}</span>
+          <a href="{{ url_for('student.jobs', search=company.name) }}" class="btn btn-secondary btn-sm">View Job Drives</a>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+      <p style="color: var(--text-muted);">No companies found matching your search criteria.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

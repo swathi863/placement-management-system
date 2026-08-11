@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Applications - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Manage Student Applications</h1>
+    <p class="page-subtitle">Filter applications across drives, update status, add recruiter notes, and schedule interviews</p>
+  </div>
+</div>
+
+<!-- Search & Filters -->
+<div class="filter-card">
+  <form action="{{ url_for('admin.applications') }}" method="GET" style="display: flex; gap: 1rem; width: 100%; flex-wrap: wrap;">
+    <input type="text" name="search" class="form-control" placeholder="Search student name, email, or job..." value="{{ search }}" style="flex: 2; min-width: 220px;">
+
+    <select name="job_id" class="form-select" style="flex: 1; min-width: 180px;">
+      <option value="">All Job Drives</option>
+      {% for j in jobs %}
+        <option value="{{ j.id }}" {% if job_id == j.id|string %}selected{% endif %}>{{ j.company.name }} - {{ j.title }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="status" class="form-select" style="flex: 1; min-width: 160px;">
+      <option value="">All Statuses</option>
+      <option value="Applied" {% if status_filter == 'Applied' %}selected{% endif %}>Applied</option>
+      <option value="Under Review" {% if status_filter == 'Under Review' %}selected{% endif %}>Under Review</option>
+      <option value="Shortlisted" {% if status_filter == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+      <option value="Interview Scheduled" {% if status_filter == 'Interview Scheduled' %}selected{% endif %}>Interview Scheduled</option>
+      <option value="Selected" {% if status_filter == 'Selected' %}selected{% endif %}>Selected (Hired)</option>
+      <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if search or job_id or status_filter %}
+      <a href="{{ url_for('admin.applications') }}" class="btn btn-secondary">Reset</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Master Applications Table -->
+{% if applications %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Student Details</th>
+          <th>Branch & CGPA</th>
+          <th>Applied Job & Company</th>
+          <th>Applied Date</th>
+          <th>Status</th>
+          <th>Resume</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+          <tr>
+            <td>
+              <div style="font-weight: 600;">
+                <a href="{{ url_for('admin.student_detail', student_id=app.student.id) }}">{{ app.student.name }}</a>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">{{ app.student.email }}</div>
+            </td>
+            <td>
+              <div>{{ app.student.branch }}</div>
+              <span class="badge badge-secondary" style="font-size: 0.775rem;">CGPA: {{ app.student.cgpa }}</span>
+            </td>
+            <td>
+              <div style="font-weight: 600;">{{ app.job.title }}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">🏢 {{ app.job.company.name }}</div>
+            </td>
+            <td>{{ app.applied_at|format_date }}</td>
+            <td><span class="badge {{ app.status|status_badge }}">{{ app.status }}</span></td>
+            <td>
+              {% if app.student.resume_filename %}
+                <a href="{{ url_for('main.uploaded_file', filename='resumes/' ~ app.student.resume_filename) }}" target="_blank" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                  📄 Resume
+                </a>
+              {% else %}
+                <span style="font-size: 0.775rem; color: var(--text-muted);">None</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openStatusModal({{ app.id }}, '{{ app.student.name|escape }}', '{{ app.job.title|escape }}', '{{ app.status }}', '{{ app.remarks or '' }}');">
+                  Status
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openScheduleModal({{ app.id }}, '{{ app.student.name|escape }}', '{{ app.job.title|escape }}');">
+                  📅 Interview
+                </button>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 3rem;">
+    <p style="color: var(--text-muted);">No applications found matching your criteria.</p>
+  </div>
+{% endif %}
+
+<!-- Modal: Status Update Dialog -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 style="font-size: 1.2rem; font-weight: 700;">Update Application Status</h2>
+      <button type="button" class="modal-close">&times;</button>
+    </div>
+
+    <form id="statusModalForm" method="POST">
+      <div style="background-color: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-weight: 600; color: var(--text-main);" id="modalStudentName">Student</div>
+        <div style="font-size: 0.825rem; color: var(--text-muted);" id="modalJobTitle">Job Title</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalStatusSelect">Select Status</label>
+        <select id="modalStatusSelect" name="status" class="form-select" required>
+          <option value="Applied">Applied</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Interview Scheduled">Interview Scheduled</option>
+          <option value="Selected">Selected (Hired)</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalRemarksInput">Remarks / Feedback</label>
+        <textarea id="modalRemarksInput" name="remarks" class="form-control" rows="3" placeholder="Recruiter remarks, interview score, or feedback..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Status</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Schedule Interview Dialog -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 style="font-size: 1.2rem; font-weight: 700;">Schedule Interview Round</h2>
+      <button type="button" class="modal-close">&times;</button>
+    </div>
+
+    <form id="scheduleModalForm" method="POST">
+      <div style="background-color: var(--primary-light); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-weight: 600; color: var(--primary);" id="schedStudentName">Candidate</div>
+        <div style="font-size: 0.825rem; color: var(--text-muted);" id="schedJobTitle">Job Title</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="round_name">Interview Round Name *</label>
+        <input type="text" id="round_name" name="round_name" class="form-control" placeholder="e.g. Technical Round 1, HR Interview" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="interview_date">Date *</label>
+          <input type="date" id="interview_date" name="interview_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="interview_time">Time *</label>
+          <input type="time" id="interview_time" name="interview_time" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mode">Interview Mode</label>
+          <select id="mode" name="mode" class="form-select">
+            <option value="Online">Online Video Call</option>
+            <option value="In-Person">In-Person Campus Venue</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="location_or_link">Link / Venue Location</label>
+          <input type="text" id="location_or_link" name="location_or_link" class="form-control" placeholder="Google Meet link or Room 302, Block A">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="instructions">Candidate Instructions</label>
+        <textarea id="instructions" name="instructions" class="form-control" rows="2" placeholder="e.g. Bring updated resume copy, keep video camera enabled..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Schedule Interview</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

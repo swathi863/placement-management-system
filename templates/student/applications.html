@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}My Job Applications - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Applications</h1>
+    <p class="page-subtitle">Track status, interview schedules, and recruiter remarks for your applications</p>
+  </div>
+  <div>
+    <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">Find More Jobs</a>
+  </div>
+</div>
+
+<!-- Filter Pills -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+  <a href="{{ url_for('student.applications') }}" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}">
+    All ({{ applications|length if not current_status else 'All' }})
+  </a>
+  <a href="{{ url_for('student.applications', status='Applied') }}" class="btn btn-sm {% if current_status == 'Applied' %}btn-primary{% else %}btn-secondary{% endif %}">Applied</a>
+  <a href="{{ url_for('student.applications', status='Under Review') }}" class="btn btn-sm {% if current_status == 'Under Review' %}btn-primary{% else %}btn-secondary{% endif %}">Under Review</a>
+  <a href="{{ url_for('student.applications', status='Shortlisted') }}" class="btn btn-sm {% if current_status == 'Shortlisted' %}btn-primary{% else %}btn-secondary{% endif %}">Shortlisted</a>
+  <a href="{{ url_for('student.applications', status='Interview Scheduled') }}" class="btn btn-sm {% if current_status == 'Interview Scheduled' %}btn-primary{% else %}btn-secondary{% endif %}">Interview Scheduled</a>
+  <a href="{{ url_for('student.applications', status='Selected') }}" class="btn btn-sm {% if current_status == 'Selected' %}btn-primary{% else %}btn-secondary{% endif %}">Selected</a>
+  <a href="{{ url_for('student.applications', status='Rejected') }}" class="btn btn-sm {% if current_status == 'Rejected' %}btn-primary{% else %}btn-secondary{% endif %}">Rejected</a>
+</div>
+
+<!-- Applications Table / Cards -->
+{% if applications %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Company & Job Title</th>
+          <th>Applied Date</th>
+          <th>Current Status</th>
+          <th>Latest Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+          <tr>
+            <td>
+              <div style="font-weight: 600; font-size: 0.95rem;">
+                <a href="{{ url_for('student.application_detail', app_id=app.id) }}">{{ app.job.title }}</a>
+              </div>
+              <div style="font-size: 0.825rem; color: var(--text-muted);">🏢 {{ app.job.company.name }} &bull; 💰 {{ app.job.salary_package or 'N/A' }}</div>
+            </td>
+            <td>
+              <span style="font-size: 0.85rem;">{{ app.applied_at|format_date }}</span>
+            </td>
+            <td>
+              <span class="badge {{ app.status|status_badge }}">{{ app.status }}</span>
+            </td>
+            <td style="max-width: 260px;">
+              <span style="font-size: 0.825rem; color: var(--text-muted);">
+                {{ app.remarks or 'No additional remarks provided yet.' }}
+              </span>
+            </td>
+            <td>
+              <a href="{{ url_for('student.application_detail', app_id=app.id) }}" class="btn btn-secondary btn-sm">
+                View Timeline
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 3rem;">
+    <p style="color: var(--text-muted); margin-bottom: 1rem;">No applications found matching the selected status filter.</p>
+    <a href="{{ url_for('student.jobs') }}" class="btn btn-primary btn-sm">Browse Available Jobs</a>
+  </div>
+{% endif %}
+{% endblock %}

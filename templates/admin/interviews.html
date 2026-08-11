@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Interviews - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Manage Interview Schedules</h1>
+    <p class="page-subtitle">Schedule interview rounds for shortlisted candidates and manage existing schedules</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.75rem;">
+  <!-- Left Side: Schedule New Interview Form -->
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 1rem;">Schedule New Interview</h2>
+
+    {% if eligible_apps %}
+      <form action="{{ url_for('admin.interviews') }}" method="POST" id="mainSchedForm">
+        <div class="form-group">
+          <label class="form-label" for="app_select">Select Candidate & Job *</label>
+          <select id="app_select" class="form-select" onchange="document.getElementById('mainSchedForm').action = '/admin/interview/schedule/' + this.value;" required>
+            <option value="">Choose Shortlisted Application</option>
+            {% for app in eligible_apps %}
+              <option value="{{ app.id }}">{{ app.student.name }} ({{ app.student.branch }}) &mdash; {{ app.job.title }} ({{ app.job.company.name }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="round_name_main">Interview Round Name *</label>
+          <input type="text" id="round_name_main" name="round_name" class="form-control" placeholder="e.g. Technical Round 1" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="interview_date_main">Date *</label>
+            <input type="date" id="interview_date_main" name="interview_date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="interview_time_main">Time *</label>
+            <input type="time" id="interview_time_main" name="interview_time" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="mode_main">Interview Mode</label>
+          <select id="mode_main" name="mode" class="form-select">
+            <option value="Online">Online Video Call</option>
+            <option value="In-Person">In-Person Campus Venue</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="location_or_link_main">Meeting Link / Room</label>
+          <input type="text" id="location_or_link_main" name="location_or_link" class="form-control" placeholder="Google Meet link or Room number">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="instructions_main">Candidate Instructions</label>
+          <textarea id="instructions_main" name="instructions" class="form-control" rows="2" placeholder="Special requirements or prerequisites..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">Schedule Interview</button>
+      </form>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        No active applications currently available for interview scheduling.
+      </p>
+    {% endif %}
+  </div>
+
+  <!-- Right Side: Scheduled Interviews Master List -->
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 1rem;">Scheduled Interview Rounds ({{ interviews|length }})</h2>
+
+    {% if interviews %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Candidate & Job</th>
+              <th>Round & Date</th>
+              <th>Mode & Venue</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in interviews %}
+              <tr>
+                <td>
+                  <div style="font-weight: 600;">
+                    <a href="{{ url_for('admin.student_detail', student_id=i.application.student.id) }}">{{ i.application.student.name }}</a>
+                  </div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ i.application.job.title }} ({{ i.application.job.company.name }})</div>
+                </td>
+                <td>
+                  <div style="font-weight: 600; font-size: 0.875rem;">{{ i.round_name }}</div>
+                  <div style="font-size: 0.8rem; color: var(--primary);">📅 {{ i.interview_date }} @ {{ i.interview_time }}</div>
+                </td>
+                <td>
+                  <span class="badge badge-secondary">{{ i.mode }}</span>
+                  {% if i.location_or_link %}
+                    <div style="font-size: 0.775rem; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {{ i.location_or_link }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td><span class="badge {{ i.status|status_badge }}">{{ i.status }}</span></td>
+                <td>
+                  <form action="{{ url_for('admin.delete_interview', interview_id=i.id) }}" method="POST" onsubmit="return confirm('Cancel/Delete this interview round?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); text-align: center; padding: 2rem;">No interviews scheduled yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

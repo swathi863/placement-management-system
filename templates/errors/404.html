@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}404 Page Not Found - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 540px; margin: 3rem auto; text-align: center; padding: 3rem 2rem;">
+  <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">404</div>
+  <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Page Not Found</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.75rem;">
+    The page or resource you requested could not be found. It may have been moved or deleted.
+  </p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Homepage</a>
+</div>
+{% endblock %}

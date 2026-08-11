@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Placement Portal - University Campus Recruitment{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 2rem auto; text-align: center;">
+  <div style="margin-bottom: 2.5rem;">
+    <div style="display: inline-flex; width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border-radius: 20px; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); margin-bottom: 1.25rem;">
+      P
+    </div>
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">
+      Campus Placement Management System
+    </h1>
+    <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 640px; margin: 0 auto;">
+      Streamlining campus drives, student applications, interview schedules, and company recruitment in one modern, unified portal.
+    </p>
+  </div>
+
+  <!-- Role Selection Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem; margin-top: 2rem; text-align: left;">
+    <!-- Student Portal Card -->
+    <div class="card" style="padding: 2rem; border-top: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="stat-icon blue" style="margin-bottom: 1rem;">🎓</div>
+        <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem;">Student Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-bottom: 1.5rem;">
+          Register your student profile, upload your resume, browse active job openings, track application statuses, and check interview schedules.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('auth.student_login') }}" class="btn btn-primary" style="flex: 1;">Student Login</a>
+        <a href="{{ url_for('auth.student_register') }}" class="btn btn-secondary" style="flex: 1;">Register</a>
+      </div>
+    </div>
+
+    <!-- Admin Portal Card -->
+    <div class="card" style="padding: 2rem; border-top: 4px solid #d97706; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="stat-icon amber" style="margin-bottom: 1rem;">🛡️</div>
+        <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem;">Administrator Portal</h2>
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-bottom: 1.5rem;">
+          Manage student records, post and edit job openings, create company profiles, update application statuses, and schedule interview rounds.
+        </p>
+      </div>
+      <div>
+        <a href="{{ url_for('auth.admin_login') }}" class="btn btn-secondary" style="width: 100%; border-color: #d97706; color: #b45309;">Admin Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

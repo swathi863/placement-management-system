@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}413 File Too Large - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 540px; margin: 3rem auto; text-align: center; padding: 3rem 2rem;">
+  <div style="font-size: 3.5rem; font-weight: 800; color: var(--danger-text); margin-bottom: 0.5rem;">413</div>
+  <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">File Exceeds Upload Limit</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.75rem;">
+    The file you uploaded exceeds the maximum allowed limit of 16MB. Please choose a smaller file.
+  </p>
+  <a href="{{ url_for('student.resume') }}" class="btn btn-primary">Try Again</a>
+</div>
+{% endblock %}

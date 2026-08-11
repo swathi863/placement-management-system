@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Resume - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Resume Management</h1>
+    <p class="page-subtitle">Upload and attach your resume (PDF / DOCX format, max 16MB)</p>
+  </div>
+</div>
+
+<div style="max-width: 680px; margin: 0 auto;">
+  <div class="card">
+    <div style="margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Current Attached Resume</h2>
+      {% if student.resume_filename %}
+        <div style="background-color: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.5rem;">📄</span>
+            <div>
+              <div style="font-weight: 600; color: var(--success-text);">{{ student.resume_filename.split('_', 1)[-1] }}</div>
+              <div style="font-size: 0.775rem; color: var(--text-muted);">Attached & ready for job applications</div>
+            </div>
+          </div>
+          <a href="{{ url_for('main.uploaded_file', filename='resumes/' ~ student.resume_filename) }}" target="_blank" class="btn btn-secondary btn-sm">
+            View / Download
+          </a>
+        </div>
+      {% else %}
+        <div style="background-color: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-md); padding: 1rem; color: var(--warning-text); font-size: 0.9rem;">
+          ⚠️ You have not uploaded a resume yet. An uploaded resume is required to apply for job postings.
+        </div>
+      {% endif %}
+    </div>
+
+    <form action="{{ url_for('student.resume') }}" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Upload New Resume File</label>
+        <div style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; background-color: var(--bg-main); cursor: pointer;" onclick="document.getElementById('resumeFile').click();">
+          <div style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--primary);">📤</div>
+          <div style="font-weight: 600; color: var(--text-main);">Click here to choose a file</div>
+          <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.25rem;">Supported formats: PDF, DOC, DOCX</div>
+          <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" style="display: none;" required>
+          <div class="file-name-display" style="margin-top: 0.75rem; font-weight: 600; color: var(--primary);"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;">Upload & Update Resume</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

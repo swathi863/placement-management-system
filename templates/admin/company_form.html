@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if company %}Edit Company - {{ company.name }}{% else %}Add New Company{% endif %} - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <a href="{{ url_for('admin.companies') }}" style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; display: inline-block;">&larr; Back to Companies List</a>
+    <h1 class="page-title">{% if company %}Edit Company: {{ company.name }}{% else %}Add New Company Profile{% endif %}</h1>
+    <p class="page-subtitle">Configure company information, logo, and recruiter contact details</p>
+  </div>
+</div>
+
+<div style="max-width: 720px; margin: 0 auto;">
+  <div class="card">
+    <form action="{% if company %}{{ url_for('admin.edit_company', company_id=company.id) }}{% else %}{{ url_for('admin.add_company') }}{% endif %}" method="POST" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="name">Company Name *</label>
+          <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Google, TechCorp" value="{{ company.name if company else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="industry">Industry Sector</label>
+          <input type="text" id="industry" name="industry" class="form-control" placeholder="e.g. Software, FinTech, E-commerce" value="{{ company.industry if company else '' }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="location">Headquarters / Location</label>
+          <input type="text" id="location" name="location" class="form-control" placeholder="e.g. San Francisco, CA / Remote" value="{{ company.location if company else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="contact_email">Recruiter Contact Email</label>
+          <input type="email" id="contact_email" name="contact_email" class="form-control" placeholder="careers@company.com" value="{{ company.contact_email if company else '' }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="website">Company Website URL</label>
+        <input type="url" id="website" name="website" class="form-control" placeholder="https://www.company.com" value="{{ company.website if company else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Company Description & Overview</label>
+        <textarea id="description" name="description" class="form-control" rows="4" placeholder="Brief summary of company products, culture, and achievements...">{{ company.description if company else '' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="logo">Company Logo (Optional)</label>
+        <input type="file" id="logo" name="logo" class="form-control" accept="image/*">
+        {% if company and company.logo_filename %}
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Current logo attached: {{ company.logo_filename }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+        <a href="{{ url_for('admin.companies') }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% if company %}Save Changes{% else %}Create Company{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+static/uploads/resumes/*
+static/uploads/logos/*
+!static/uploads/resumes/.gitkeep
+!static/uploads/logos/.gitkeep

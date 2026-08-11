@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Placement Portal{% endblock %}</title>
+  
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="{{ url_for('main.index') }}" class="brand-logo">
+          <div class="brand-icon">P</div>
+          <span>Placement Portal</span>
+        </a>
+
+        <ul class="nav-links">
+          {% if session.get('user_role') == 'student' %}
+            <li class="nav-item {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+              <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['student.jobs', 'student.job_detail'] %}active{% endif %}">
+              <a href="{{ url_for('student.jobs') }}">Jobs</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'student.companies' %}active{% endif %}">
+              <a href="{{ url_for('student.companies') }}">Companies</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['student.applications', 'student.application_detail'] %}active{% endif %}">
+              <a href="{{ url_for('student.applications') }}">My Applications</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'student.interviews' %}active{% endif %}">
+              <a href="{{ url_for('student.interviews') }}">Interviews</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['student.profile', 'student.resume'] %}active{% endif %}">
+              <a href="{{ url_for('student.profile') }}">Profile</a>
+            </li>
+          {% elif session.get('user_role') == 'admin' %}
+            <li class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+              <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['admin.students', 'admin.student_detail'] %}active{% endif %}">
+              <a href="{{ url_for('admin.students') }}">Students</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['admin.companies', 'admin.add_company', 'admin.edit_company'] %}active{% endif %}">
+              <a href="{{ url_for('admin.companies') }}">Companies</a>
+            </li>
+            <li class="nav-item {% if request.endpoint in ['admin.jobs', 'admin.add_job', 'admin.edit_job'] %}active{% endif %}">
+              <a href="{{ url_for('admin.jobs') }}">Jobs</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'admin.applications' %}active{% endif %}">
+              <a href="{{ url_for('admin.applications') }}">Applications</a>
+            </li>
+            <li class="nav-item {% if request.endpoint == 'admin.interviews' %}active{% endif %}">
+              <a href="{{ url_for('admin.interviews') }}">Interviews</a>
+            </li>
+          {% else %}
+            <li class="nav-item"><a href="{{ url_for('auth.student_login') }}">Student Login</a></li>
+            <li class="nav-item"><a href="{{ url_for('auth.student_register') }}">Register</a></li>
+            <li class="nav-item"><a href="{{ url_for('auth.admin_login') }}">Admin Login</a></li>
+          {% endif %}
+        </ul>
+
+        {% if session.get('user_id') %}
+          <div class="user-pill">
+            <span class="role-badge {{ session.get('user_role') }}">{{ session.get('user_role') }}</span>
+            <span>{{ session.get('user_name', 'User') }}</span>
+            <a href="{{ url_for('auth.logout') }}" style="margin-left: 0.5rem; color: var(--danger-text);" title="Logout">Logout</a>
+          </div>
+        {% endif %}
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="alert-container">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <span>{{ message }}</span>
+                <button type="button" class="alert-close">&times;</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="nav-container" style="justify-content: center;">
+        <p>&copy; 2026 University Placement Management System. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

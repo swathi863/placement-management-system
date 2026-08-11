@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Administrator Placement Dashboard</h1>
+    <p class="page-subtitle">Overview of campus recruitment statistics, student placements, and active drives</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="{{ url_for('admin.add_job') }}" class="btn btn-primary">+ Post New Job</a>
+    <a href="{{ url_for('admin.add_company') }}" class="btn btn-secondary">+ Add Company</a>
+  </div>
+</div>
+
+<!-- Key Placement Statistics -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">👨‍🎓</div>
+    <div>
+      <div class="stat-value">{{ total_students }}</div>
+      <div class="stat-label">Registered Students</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">🏢</div>
+    <div>
+      <div class="stat-value">{{ total_companies }}</div>
+      <div class="stat-label">Partner Companies</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">💼</div>
+    <div>
+      <div class="stat-value">{{ total_jobs }}</div>
+      <div class="stat-label">Active Job Drives</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">🎯</div>
+    <div>
+      <div class="stat-value">{{ placement_rate }}%</div>
+      <div class="stat-label">Placement Rate ({{ selected_students_count }}/{{ total_students }})</div>
+    </div>
+  </div>
+</div>
+
+<!-- Second Metrics Row -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <!-- Branch Placement Progress -->
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 1rem;">Branch-wise Placements</h2>
+    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+      {% for branch_name, data in branch_stats.items() %}
+        {% set rate = ((data.placed / data.total * 100)|round(1)) if data.total > 0 else 0 %}
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+            <span>{{ branch_name }}</span>
+            <span>{{ data.placed }} / {{ data.total }} Placed ({{ rate }}%)</span>
+          </div>
+          <div style="height: 8px; background-color: var(--bg-subtle); border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: {{ rate }}%; background-color: var(--primary); border-radius: 4px;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quick Management Links Card -->
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 1rem;">Quick Actions</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+      <a href="{{ url_for('admin.students') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+        👨‍🎓 Students ({{ total_students }})
+      </a>
+      <a href="{{ url_for('admin.companies') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+        🏢 Companies ({{ total_companies }})
+      </a>
+      <a href="{{ url_for('admin.jobs') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+        💼 Jobs ({{ total_jobs }})
+      </a>
+      <a href="{{ url_for('admin.applications') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+        📝 Applications ({{ total_applications }})
+      </a>
+      <a href="{{ url_for('admin.interviews') }}" class="btn btn-secondary" style="justify-content: flex-start; grid-column: 1 / -1;">
+        📅 Schedule Interviews ({{ interview_count }} Active)
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Applications Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Recent Job Applications</h2>
+    <a href="{{ url_for('admin.applications') }}" class="btn btn-secondary btn-sm">Manage All Applications</a>
+  </div>
+
+  {% if recent_applications %}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Branch & CGPA</th>
+            <th>Job & Company</th>
+            <th>Applied Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in recent_applications %}
+            <tr>
+              <td>
+                <div style="font-weight: 600;">
+                  <a href="{{ url_for('admin.student_detail', student_id=app.student.id) }}">{{ app.student.name }}</a>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ app.student.email }}</div>
+              </td>
+              <td>
+                <div>{{ app.student.branch }}</div>
+                <span class="badge badge-secondary">CGPA: {{ app.student.cgpa }}</span>
+              </td>
+              <td>
+                <div style="font-weight: 600;">{{ app.job.title }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">🏢 {{ app.job.company.name }}</div>
+              </td>
+              <td>{{ app.applied_at|format_date }}</td>
+              <td><span class="badge {{ app.status|status_badge }}">{{ app.status }}</span></td>
+              <td>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openStatusModal({{ app.id }}, '{{ app.student.name|escape }}', '{{ app.job.title|escape }}', '{{ app.status }}', '{{ app.remarks or '' }}');">
+                  Update Status
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">No applications submitted yet.</p>
+  {% endif %}
+</div>
+
+<!-- Modal: Quick Update Status Dialog -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 style="font-size: 1.2rem; font-weight: 700;">Update Application Status</h2>
+      <button type="button" class="modal-close">&times;</button>
+    </div>
+
+    <form id="statusModalForm" method="POST">
+      <div style="background-color: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div style="font-weight: 600; color: var(--text-main);" id="modalStudentName">Student</div>
+        <div style="font-size: 0.825rem; color: var(--text-muted);" id="modalJobTitle">Job Title</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalStatusSelect">Select New Status</label>
+        <select id="modalStatusSelect" name="status" class="form-select" required>
+          <option value="Applied">Applied</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Interview Scheduled">Interview Scheduled</option>
+          <option value="Selected">Selected (Hired)</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="modalRemarksInput">Admin Remarks / Notes</label>
+        <textarea id="modalRemarksInput" name="remarks" class="form-control" rows="3" placeholder="Notes regarding shortlisted status, score, or rejection reason..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Status</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

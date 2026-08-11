@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Jobs - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Manage Job Postings</h1>
+    <p class="page-subtitle">Create, edit, toggle status, and inspect job drive applications</p>
+  </div>
+  <div>
+    <a href="{{ url_for('admin.add_job') }}" class="btn btn-primary">+ Post New Job</a>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-card">
+  <form action="{{ url_for('admin.jobs') }}" method="GET" style="display: flex; gap: 1rem; width: 100%; flex-wrap: wrap;">
+    <input type="text" name="search" class="form-control" placeholder="Search job title or company..." value="{{ search }}" style="flex: 2; min-width: 220px;">
+    
+    <select name="company_id" class="form-select" style="flex: 1; min-width: 180px;">
+      <option value="">All Companies</option>
+      {% for comp in companies %}
+        <option value="{{ comp.id }}" {% if company_id == comp.id|string %}selected{% endif %}>{{ comp.name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if search or company_id %}
+      <a href="{{ url_for('admin.jobs') }}" class="btn btn-secondary">Reset</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Jobs List Table -->
+{% if jobs %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Job Title & Company</th>
+          <th>Type & Compensation</th>
+          <th>Eligibility (CGPA / Branch)</th>
+          <th>Deadline</th>
+          <th>Applications</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+          <tr>
+            <td>
+              <div style="font-weight: 700; font-size: 0.95rem;">{{ job.title }}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">🏢 {{ job.company.name }} &bull; 📍 {{ job.location or 'Flexible' }}</div>
+            </td>
+            <td>
+              <span class="badge badge-secondary" style="margin-bottom: 0.2rem;">{{ job.job_type }}</span>
+              <div style="font-size: 0.825rem; font-weight: 600; color: var(--primary);">{{ job.salary_package or 'N/A' }}</div>
+            </td>
+            <td>
+              <div style="font-size: 0.85rem;">Min CGPA: <strong>{{ job.min_cgpa }}</strong></div>
+              <div style="font-size: 0.775rem; color: var(--text-muted);">Branches: {{ job.eligible_branches }}</div>
+            </td>
+            <td>
+              <span style="font-size: 0.825rem;">{{ job.deadline|format_date if job.deadline else 'No deadline' }}</span>
+            </td>
+            <td>
+              <a href="{{ url_for('admin.applications', job_id=job.id) }}" class="badge badge-applied" style="font-size: 0.825rem;">
+                {{ job.applications|length }} Applied
+              </a>
+            </td>
+            <td>
+              {% if job.is_active %}
+                <span class="badge badge-selected">Active</span>
+              {% else %}
+                <span class="badge badge-rejected">Deactivated</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <a href="{{ url_for('admin.edit_job', job_id=job.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                <form action="{{ url_for('admin.toggle_job', job_id=job.id) }}" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    {% if job.is_active %}Pause{% else %}Activate{% endif %}
+                  </button>
+                </form>
+                <form action="{{ url_for('admin.delete_job', job_id=job.id) }}" method="POST" onsubmit="return confirm('Delete job posting {{ job.title|escape }}?');" style="display: inline;">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card" style="text-align: center; padding: 3rem;">
+    <p style="color: var(--text-muted);">No job postings found. Click "+ Post New Job" to create one.</p>
+  </div>
+{% endif %}
+{% endblock %}

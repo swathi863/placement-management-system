@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.name }} - Student Details{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <a href="{{ url_for('admin.students') }}" style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; display: inline-block;">&larr; Back to Students List</a>
+    <h1 class="page-title">{{ student.name }}</h1>
+    <p class="page-subtitle">{{ student.email }} &bull; {{ student.phone or 'No phone number' }}</p>
+  </div>
+  <div>
+    {% if student.resume_filename %}
+      <a href="{{ url_for('main.uploaded_file', filename='resumes/' ~ student.resume_filename) }}" target="_blank" class="btn btn-primary">
+        📄 Download Resume
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.75rem;">
+  <!-- Left Side: Profile Card -->
+  <div class="card">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <div class="stat-icon blue" style="margin: 0 auto 0.75rem auto; width: 64px; height: 64px; font-size: 1.8rem;">🎓</div>
+      <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem;">{{ student.name }}</h2>
+      <span class="badge badge-secondary">{{ student.branch }}</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.9rem;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Current CGPA</span>
+        <span style="font-weight: 700; color: var(--primary);">{{ student.cgpa }} / 10.0</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Graduation Year</span>
+        <span style="font-weight: 600;">{{ student.grad_year or 'N/A' }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <span style="color: var(--text-muted);">Total Applications</span>
+        <span style="font-weight: 600;">{{ applications|length }}</span>
+      </div>
+      <div>
+        <span style="color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Technical Skills:</span>
+        <div>
+          {% for skill in student.get_skills_list() %}
+            <span class="badge badge-secondary" style="margin: 0.15rem;">{{ skill }}</span>
+          {% else %}
+            <span style="font-size: 0.8rem; color: var(--text-muted);">No skills listed</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% if student.bio %}
+      <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+        <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Bio:</span>
+        <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">{{ student.bio }}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Side: Student's Applications & History -->
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 1rem;">Application History</h2>
+
+    {% if applications %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Job Title & Company</th>
+              <th>Applied Date</th>
+              <th>Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <div style="font-weight: 600;">{{ app.job.title }}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">🏢 {{ app.job.company.name }}</div>
+                </td>
+                <td>{{ app.applied_at|format_date }}</td>
+                <td><span class="badge {{ app.status|status_badge }}">{{ app.status }}</span></td>
+                <td style="font-size: 0.825rem; color: var(--text-muted);">{{ app.remarks or 'N/A' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); padding: 2rem 0; text-align: center;">This student has not submitted any job applications yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

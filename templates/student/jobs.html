@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Jobs - Student Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Active Job Opportunities</h1>
+    <p class="page-subtitle">Browse campus recruitment drives, internships, and full-time positions</p>
+  </div>
+</div>
+
+<!-- Filters & Search -->
+<div class="filter-card">
+  <form action="{{ url_for('student.jobs') }}" method="GET" style="display: flex; gap: 1rem; width: 100%; flex-wrap: wrap; align-items: center;">
+    <input type="text" name="search" class="form-control" placeholder="Search title, company or location..." value="{{ search }}" style="flex: 2; min-width: 220px;">
+    
+    <select name="branch" class="form-select" style="flex: 1; min-width: 160px;">
+      <option value="">All Branches</option>
+      <option value="Computer Science" {% if branch_filter == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+      <option value="Information Technology" {% if branch_filter == 'Information Technology' %}selected{% endif %}>Information Technology</option>
+      <option value="Electronics" {% if branch_filter == 'Electronics' %}selected{% endif %}>Electronics</option>
+      <option value="Mechanical" {% if branch_filter == 'Mechanical' %}selected{% endif %}>Mechanical</option>
+      <option value="Civil" {% if branch_filter == 'Civil' %}selected{% endif %}>Civil</option>
+    </select>
+
+    <select name="type" class="form-select" style="flex: 1; min-width: 140px;">
+      <option value="">All Job Types</option>
+      <option value="Full-time" {% if job_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+      <option value="Internship" {% if job_type == 'Internship' %}selected{% endif %}>Internship</option>
+      <option value="Contract" {% if job_type == 'Contract' %}selected{% endif %}>Contract</option>
+    </select>
+
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+      <input type="checkbox" name="eligible_only" value="1" {% if eligible_only %}checked{% endif %}>
+      Only Eligible (CGPA &le; {{ student.cgpa }})
+    </label>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if search or branch_filter or job_type or eligible_only %}
+      <a href="{{ url_for('student.jobs') }}" class="btn btn-secondary">Reset</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Jobs Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+  {% if jobs %}
+    {% for job in jobs %}
+      {% set is_cgpa_ok = student.cgpa >= job.min_cgpa %}
+      {% set branches_list = job.get_branches_list() %}
+      {% set is_branch_ok = ('All' in branches_list) or (student.branch in branches_list) %}
+      {% set is_eligible = is_cgpa_ok and is_branch_ok %}
+      {% set has_applied = job.id in applied_job_ids %}
+
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; position: relative; border-left: 4px solid {% if has_applied %}#10b981{% elif is_eligible %}#2563eb{% else %}#94a3b8{% endif %};">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div>
+              <span class="badge badge-secondary" style="margin-bottom: 0.35rem;">{{ job.job_type }}</span>
+              <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                <a href="{{ url_for('student.job_detail', job_id=job.id) }}">{{ job.title }}</a>
+              </h2>
+              <div style="font-weight: 600; color: var(--primary); font-size: 0.95rem; margin-top: 0.15rem;">
+                🏢 {{ job.company.name }}
+              </div>
+            </div>
+            {% if has_applied %}
+              <span class="badge badge-selected">Applied</span>
+            {% elif not is_eligible %}
+              <span class="badge badge-rejected">Ineligible</span>
+            {% else %}
+              <span class="badge badge-applied">Eligible</span>
+            {% endif %}
+          </div>
+
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ job.description }}
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.825rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <div>📍 Location: <strong>{{ job.location or 'Flexible' }}</strong></div>
+            <div>💰 Package: <strong>{{ job.salary_package or 'Negotiable' }}</strong></div>
+            <div>🎓 Min CGPA: <strong>{{ job.min_cgpa }}</strong> &bull; Branches: <strong>{{ job.eligible_branches }}</strong></div>
+            {% if job.deadline %}
+              <div>⏰ Deadline: <strong style="color: var(--danger-text);">{{ job.deadline|format_date }}</strong></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 0.85rem; display: flex; gap: 0.75rem;">
+          <a href="{{ url_for('student.job_detail', job_id=job.id) }}" class="btn btn-secondary" style="flex: 1;">View Details</a>
+          {% if has_applied %}
+            <a href="{{ url_for('student.applications') }}" class="btn btn-secondary" style="border-color: #10b981; color: #047857; background-color: #ecfdf5;">Status</a>
+          {% elif is_eligible %}
+            <a href="{{ url_for('student.job_detail', job_id=job.id) }}" class="btn btn-primary">Apply Now</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+      <p style="color: var(--text-muted);">No job postings match your filter parameters.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
